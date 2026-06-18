@@ -31,6 +31,7 @@ build/
 .navigation
 captures/
 output.json 
+platform-tools/
     
 #NDK
 obj/
@@ -54,3 +55,6 @@ obj/
 *.ipr
 *~
 *.swp
+
+# Personal data (local reference only — do not publish feed subscriptions)
+feeds.opml

@@ -5,6 +5,8 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import android.util.TypedValue
 import android.widget.RemoteViews
 import android.util.Log
 import androidx.core.net.toUri
@@ -104,6 +106,16 @@ class RssWidgetProvider : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
             )
             views.setOnClickPendingIntent(R.id.btn_settings, settingsPendingIntent)
+
+            // Let the header buttons grow a little with the text-size setting (clamped so they stay
+            // proportional). Resizing a RemoteViews child requires API 31+.
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val buttonSizeDp = 40f * (prefs.textScale / 100f).coerceIn(1.0f, 1.2f)
+                for (id in intArrayOf(R.id.btn_refresh, R.id.btn_settings)) {
+                    views.setViewLayoutWidth(id, buttonSizeDp, TypedValue.COMPLEX_UNIT_DIP)
+                    views.setViewLayoutHeight(id, buttonSizeDp, TypedValue.COMPLEX_UNIT_DIP)
+                }
+            }
 
             ThemeUtils.applyThemeToWidget(context, views, prefs.themeMode)
 

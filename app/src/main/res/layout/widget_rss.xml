@@ -45,24 +45,24 @@
 
                 <ImageButton
                     android:id="@+id/btn_settings"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:background="@android:color/transparent"
                     android:contentDescription="@string/header"
-                    android:padding="6dp"
-                    android:scaleType="centerInside"
+                    android:padding="8dp"
+                    android:scaleType="fitCenter"
                     android:src="@drawable/ic_settings"
                     android:alpha="0.7" />
 
                 <ImageButton
                     android:id="@+id/btn_refresh"
-                    android:layout_width="32dp"
-                    android:layout_height="32dp"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
                     android:layout_marginStart="8dp"
                     android:background="@android:color/transparent"
                     android:contentDescription="@string/refresh"
-                    android:padding="6dp"
-                    android:scaleType="centerInside"
+                    android:padding="8dp"
+                    android:scaleType="fitCenter"
                     android:src="@drawable/ic_refresh"
                     android:alpha="0.7" />
             </LinearLayout>

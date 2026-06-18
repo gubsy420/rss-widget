@@ -76,7 +76,8 @@ class RssRemoteViewsFactory(
                     link = it.link,
                     date = it.date?.let { d -> Date(d) },
                     source = it.source,
-                    image = it.image
+                    image = it.image,
+                    remoteId = it.remoteId
                 )
             }
             withContext(Dispatchers.Main) {
@@ -120,6 +121,14 @@ class RssRemoteViewsFactory(
     override fun getViewAt(position: Int): RemoteViews {
         val item = items[position]
         val views = RemoteViews(context.packageName, R.layout.widget_rss_item)
+
+        // Scale list text sizes relative to their layout defaults (textScale is a percentage).
+        val scale = prefs.textScale / 100f
+        views.setTextViewTextSize(R.id.item_title, TypedValue.COMPLEX_UNIT_SP, 15f * scale)
+        views.setTextViewTextSize(R.id.item_description, TypedValue.COMPLEX_UNIT_SP, 12f * scale)
+        views.setTextViewTextSize(R.id.item_source, TypedValue.COMPLEX_UNIT_SP, 12f * scale)
+        views.setTextViewTextSize(R.id.item_date, TypedValue.COMPLEX_UNIT_SP, 10f * scale)
+
         views.setTextViewText(R.id.item_title, item.title)
         if((prefs.showDescription || error) && item.description.isNotEmpty()) {
             views.setViewVisibility(R.id.item_description, android.view.View.VISIBLE)
@@ -148,53 +157,41 @@ class RssRemoteViewsFactory(
             views.setViewVisibility(R.id.item_source, android.view.View.GONE)
         }
 
-        if(prefs.dimReadItems) {
-            markItemRead(views, item)
-        }
-
         val fillInIntent = Intent()
         fillInIntent.data = item.link.toUri()
         fillInIntent.putExtra("EXTRA_LINK", item.link)
+        fillInIntent.putExtra("EXTRA_REMOTE_ID", item.remoteId ?: -1L)
+        fillInIntent.putExtra("EXTRA_POSITION", position)
         fillInIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
         views.setOnClickFillInIntent(R.id.item_title, fillInIntent)
         views.setOnClickFillInIntent(R.id.item_description, fillInIntent)
         views.setOnClickFillInIntent(R.id.item_date, fillInIntent)
         views.setOnClickFillInIntent(R.id.widget_rss_item, fillInIntent)
 
+        // Copy-link button: same launcher Activity, but tagged so it copies instead of opening.
+        val copyIntent = Intent()
+        copyIntent.data = "copy:${item.link}".toUri()
+        copyIntent.putExtra("EXTRA_LINK", item.link)
+        copyIntent.putExtra("EXTRA_ACTION", "copy")
+        copyIntent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, appWidgetId)
+        views.setOnClickFillInIntent(R.id.item_copy, copyIntent)
+
         val themedContext = getThemedContextForWidget(context, prefs.themeMode)
 
-        val colorTitle = themedContext.getColorResCompat(android.R.attr.colorForeground)
-        val colorDesc = themedContext.getColorResCompat(android.R.attr.textColorPrimary)
-        val colorSecondary = themedContext.getColorResCompat(android.R.attr.colorSecondary)
-        val colorTextSecondary = themedContext.getColorResCompat(android.R.attr.textColorSecondary)
-
-        views.setTextColor(R.id.item_title, colorTitle)
-        views.setTextColor(R.id.item_description, colorDesc)
-        views.setTextColor(R.id.item_date, colorSecondary)
-        views.setTextColor(R.id.item_source, colorTextSecondary)
-        return views
-    }
-
-    fun markItemRead(views: RemoteViews, item: RssItem) {
-        val configurationContext = getThemedContextForWidget(context, prefs.themeMode)
-        val colorSecondary = configurationContext.getColorResCompat(android.R.attr.colorSecondary)
-        val colorTextSecondary = configurationContext.getColorResCompat(android.R.attr.textColorSecondary)
-        val colorTitle = configurationContext.getColorResCompat(android.R.attr.colorForeground)
-        val colorDesc = configurationContext.getColorResCompat(android.R.attr.textColorPrimary)
-
-        // Dim read items
-        val isRead = ReadItemsStore.isRead(context, appWidgetId, item.link)
-        if (isRead) {
-            views.setTextColor(R.id.item_title, context.getColor(com.google.android.material.R.color.material_dynamic_neutral50))
-            views.setTextColor(R.id.item_description, context.getColor(com.google.android.material.R.color.material_dynamic_neutral50))
-            views.setTextColor(R.id.item_date, context.getColor(com.google.android.material.R.color.material_dynamic_neutral50))
-            views.setTextColor(R.id.item_source, context.getColor(com.google.android.material.R.color.material_dynamic_neutral50))
+        // Dim the whole item once it's been read (when the option is enabled); otherwise theme colors.
+        if (prefs.dimReadItems && ReadItemsStore.isRead(context, item.link)) {
+            val dim = context.getColor(com.google.android.material.R.color.material_dynamic_neutral50)
+            views.setTextColor(R.id.item_title, dim)
+            views.setTextColor(R.id.item_description, dim)
+            views.setTextColor(R.id.item_date, dim)
+            views.setTextColor(R.id.item_source, dim)
         } else {
-            views.setTextColor(R.id.item_title, colorTitle)
-            views.setTextColor(R.id.item_description, colorDesc)
-            views.setTextColor(R.id.item_date, colorSecondary)
-            views.setTextColor(R.id.item_source, colorTextSecondary)
+            views.setTextColor(R.id.item_title, themedContext.getColorResCompat(android.R.attr.colorForeground))
+            views.setTextColor(R.id.item_description, themedContext.getColorResCompat(android.R.attr.textColorPrimary))
+            views.setTextColor(R.id.item_date, themedContext.getColorResCompat(android.R.attr.colorSecondary))
+            views.setTextColor(R.id.item_source, themedContext.getColorResCompat(android.R.attr.textColorSecondary))
         }
+        return views
     }
 
     override fun getLoadingView(): RemoteViews {
@@ -215,6 +212,7 @@ class RssRemoteViewsFactory(
         val link: String,
         val date: Date? = null,
         val source: String = "",
-        val image: String? = null
+        val image: String? = null,
+        val remoteId: Long? = null
     ): Parcelable
 }

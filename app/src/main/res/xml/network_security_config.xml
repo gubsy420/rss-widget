@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Permits cleartext (plain HTTP) traffic so the widget can reach a self-hosted Miniflux
+    instance on the local network. The server's address is entered by the user at runtime, so
+    it cannot be pinned to a specific domain here. HTTPS is still used wherever the remote
+    server offers it.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="true" />
+</network-security-config>

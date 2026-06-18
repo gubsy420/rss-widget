@@ -13,5 +13,6 @@ data class RssItemEntity(
     val link: String,
     val date: Long?, // Store as timestamp
     val source: String,
-    val image: String?
+    val image: String?,
+    val remoteId: Long? = null // Miniflux entry id, used to sync read state back to the server
 )

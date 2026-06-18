@@ -62,5 +62,20 @@
             android:maxLines="1"
             android:textColor="?android:attr/colorSecondary"
             android:textSize="10sp" />
+
+        <!-- Empty TextView used as a flexible spacer; RemoteViews does not support <Space>. -->
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
+
+        <ImageView
+            android:id="@+id/item_copy"
+            android:layout_width="32dp"
+            android:layout_height="24dp"
+            android:paddingStart="8dp"
+            android:scaleType="fitEnd"
+            android:src="@drawable/ic_share"
+            android:contentDescription="@string/copy_link" />
     </LinearLayout>
 </LinearLayout>
